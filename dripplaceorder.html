@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dripstar Fashion - Checkout</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; }
+    .container { max-width: 700px; margin: auto; padding: 20px; background: #fff; border-radius: 8px; }
+    h1 { text-align: center; }
+    .summary { margin: 20px 0; font-size: 1.2em; }
+    .pay-btn {
+      display: block;
+      margin: 12px auto;
+      padding: 12px 24px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1em;
+      cursor: pointer;
+      width: 80%;
+    }
+    .pay-btn:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Secure Checkout</h1>
+    <div class="summary">
+      <p>Order Total: <strong id="orderTotal">₦0</strong></p>
+    </div>
+
+    <!-- Payment Options -->
+    <button class="pay-btn" onclick="payWithOpay()">Pay with OPay</button>
+    <button class="pay-btn" onclick="payWithPalmpay()">Pay with PalmPay</button>
+    <button class="pay-btn" onclick="payWithPaypal()">Pay with PayPal</button>
+    <button class="pay-btn" onclick="payWithFlutterwave()">Pay with Flutterwave</button>
+    <button class="pay-btn" onclick="payWithZelle()">Pay with Zelle</button>
+    <button class="pay-btn" onclick="payWithCashapp()">Pay with CashApp</button>
+    <button class="pay-btn" onclick="payWithCrypto()">Pay with Crypto</button>
+  </div>
+
+  <script>
+    // Load cart total from localStorage
+    const cart = JSON.parse(localStorage.getItem("dripstarCart")) || [];
+    let total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    document.getElementById("orderTotal").innerText = `₦${total}`;
+
+    // Redirect functions (replace with your merchant checkout links)
+    function payWithOpay() {
+      window.location.href = "https://checkout.opayweb.com/your-merchant-id";
+    }
+    function payWithPalmpay() {
+      window.location.href = "https://palmpaycheckout.com/your-merchant-id";
+    }
+    function payWithPaypal() {
+      window.location.href = "https://www.paypal.com/checkoutnow?token=YOUR_ORDER_TOKEN";
+    }
+    function payWithFlutterwave() {
+      window.location.href = "https://flutterwave.com/pay/your-checkout-link";
+    }
+    function payWithZelle() {
+      window.location.href = "https://yourbank.com/zelle-checkout-link";
+    }
+    function payWithCashapp() {
+      window.location.href = "https://cash.app/$yourcashappid";
+    }
+    function payWithCrypto() {
+      window.location.href = "https://yourcryptoexchange.com/pay?amount=" + total;
+    }
+  </script>
+</body>
+</html>
+🔑 

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dripstar Fashion - Collection</title>
+  <style>
+    body {
+      background-color: black;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    h1 {
+      background-color: aliceblue;
+      color: black;
+      padding-bottom: 3%;
+      padding-top: 5%;
+      text-align: center;
+      word-spacing: 9px;
+      margin-top: 0;
+    }
+    .nav-buttons {
+      margin-top: -10px;
+      margin-right: 20px;
+      word-spacing: 6%;
+    }
+    .nav-btn {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 5px 12px;   
+      background: #333;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 18px; 
+      font-size: 0.85em;   
+      transition: all 0.3s ease;
+    }
+    .nav-btn:hover { background: #555; transform: translateY(-2px); }
+    .nav-btn.active { background: #b8860b; font-weight: bold; }
+
+    /* --- STAR RATINGS --- */
+    .rating { color: #ffd700; font-size: 0.9em; margin: 5px 0; }
+    .review-count { color: #888; font-size: 0.8em; margin-left: 5px; }
+
+    /* --- URGENCY TIMER --- */
+    .timer-bar {
+      background: linear-gradient(90deg, #ff0000, #ff00cc);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 0.9em;
+    }
+
+    h2 { padding-left: 13%; }
+
+    .stock-container { margin-top: 15px; width: 100%; max-width: 250px; }
+    .stock-label { font-size: 0.75em; color: #ff4444; margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .progress-bg { background: #333; height: 8px; border-radius: 10px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, #ff4444, #ff8800); height: 100%; }
+
+    .product { display: flex; align-items: flex-start; margin: 40px; position: relative; }
+
+    /* --- BADGES --- */
+    .sale-tag {
+      position: absolute; top: 10px; left: 10px;
+      background: #ff0000; color: white; padding: 5px 15px; border-radius: 20px;
+      font-weight: bold; font-size: 0.8em; z-index: 5; box-shadow: 0 0 10px rgba(255,0,0,0.5);
+    }
+
+    .best-seller-badge {
+      display: none;
+      position: absolute; top: 10px; left: 120px;
+      background: #b8860b; color: white; padding: 5px 15px; border-radius: 20px;
+      font-weight: bold; font-size: 0.8em; z-index: 5;
+      box-shadow: 0 0 10px rgba(184, 134, 11, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+    .product img {
+      width: 400px; height: 400px; margin-right: 20px;
+      cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 10px; object-fit: cover;
+    }
+    .product img:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 0, 204, 0.3); }
+
+    .product-details { max-width: 500px; }
+    .product-details b { font-size: large; }
+    .old-price { text-decoration: line-through; color: #888; font-size: 0.8em; margin-right: 5px; }
+
+    .product-details button {
+      margin-top: 10px; padding: 8px 16px; background-color: rgb(178, 209, 236);
+      border: none; cursor: pointer; font-size: medium; border-radius: 5px;
+    }
+
+    .confirmation { margin-top: 8px; font-weight: bold; color: lime; opacity: 0; transition: opacity 1s ease-out; }
+
+    .cart-bubble {
+      position: fixed; bottom: 30px; right: 30px;
+      background: linear-gradient(45deg, #ff00cc, #3333ff);
+      width: 65px; height: 65px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 5px 20px rgba(255, 0, 204, 0.5); z-index: 1001;
+    }
+    .shake { animation: cartShake 0.5s ease-in-out; }
+    @keyframes cartShake { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.2) rotate(15deg); } 50% { transform: scale(1.2) rotate(-15deg); } }
+
+    .cart-count {
+      background: white; color: black; font-size: 13px; font-weight: bold;
+      padding: 2px 8px; border-radius: 12px; position: absolute; top: -5px; right: -5px; border: 2px solid #ff00cc;
+    }
+
+    #overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 999;
+    }
+    #product-popup {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #121212 0%, #252525 100%);
+      padding: 25px; z-index: 1000; border-radius: 30px; width: 90%; max-width: 450px;
+      text-align: center; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .popup-image-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; }
+    .popup-img-wrapper { overflow: hidden; border-radius: 15px; border: 2px solid #b8860b; width: 180px; height: 180px; }
+    .popup-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .popup-img-wrapper img:hover { transform: scale(1.5); cursor: zoom-in; }
+    .view-label { font-size: 0.7em; color: #b8860b; margin-top: 5px; text-transform: uppercase; }
+
+    .popup-field { margin: 12px 0; text-align: left; }
+    .popup-field label { display: block; margin-bottom: 5px; color: #888; font-size: 0.8em; }
+    .popup-field select, .popup-field input {
+      width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #444; background: #1a1a1a; color: white;
+    }
+    .popup-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+    .btn-main {
+      background: linear-gradient(45deg, #ff00cc, #3333ff);
+      color: white; padding: 12px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;
+    }
+    .btn-outline { background: transparent; color: white; padding: 10px; border: 1px solid #b8860b; border-radius: 30px; cursor: pointer; }
+  </style>
+</head>
+<body onload="initPage()">
+
+  <div class="timer-bar">DRIPSTAR FLASH SALE ENDS IN: <span id="countdown">60:59:59</span></div>
+
+  <audio id="cart-sound" src="https://mixkit.co" preload="auto"></audio>
+
+  <div id="cart-bubble" class="cart-bubble" onclick="window.location.href='allcart.html'">
+    <span style="font-size: 28px;">🛒</span>
+    <span id="cart-count" class="cart-count">0</span>
+  </div>
+
+  <section style="text-align:center; font-size:xx-large; padding-top:2%; font-weight:700; font-family: Georgia;">Dripstar Fashion</section>
+  
+  <h1>
+    <div id="Home" class="nav-buttons">
+      <a href="dripmain.html" class="nav-btn">Home</a>
+      <a href="dripcollection.html" class="nav-btn active">Collection</a>
+      <a href="dripAbout.html" class="nav-btn">About Us</a>
+      <a href="allcart.html" class="nav-btn">Cart</a>
+      <a href="driplogin.html" class="nav-btn">Account</a>
+    </div>
+  </h1>
+
+  <h2>Drip Like A Star With Our Latest Collections</h2>
+
+  <!-- Product 1 -->
+  <div class="product">
+    <div class="sale-tag">SALE -20%</div>
+    <div class="best-seller-badge">BEST SELLER</div>
+    <img src="shein1" alt="DSF blue y2k jean skirt" onclick="openPopup('DSF blue y2k jean skirt', 'shein1', 'shein1-back', 55)">
+    <div class="product-details">
+      <b>DSF blue y2k jean skirt<br><span class="old-price">$70</span>$55</b>
+      <div class="rating">⭐⭐⭐⭐⭐ <span class="review-count">(124 reviews)</span></div>
+      <div class="stock-container">
+        <div class="stock-label"><span>Hurry! Only 5 left</span><span>75% Sold</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 75%;"></div></div>
+      </div>
+      <p>Embrace elegance with our DSF blue y2k jean skirt.</p>
+      <button onclick="addToCart('DSF blue y2k jean skirt','M',55,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+  <!-- Product 2 -->
+  <div class="product">
+    <div class="sale-tag">SALE -30%</div>
+    <div class="best-seller-badge">BEST SELLER</div>
+    <img src="shein2.jpeg" alt="DSF Plain Black crop top" onclick="openPopup('DSF plain black crop top', 'shein2.jpeg', 'shein2-back.jpeg', 40)">
+    <div class="product-details">
+      <b>DSF plain black crop top<br><span class="old-price">$60</span>$40</b>
+      <div class="rating">⭐⭐⭐⭐ <span class="review-count">(89 reviews)</span></div>
+      <div class="stock-container">
+        <div class="stock-label"><span>Selling fast! Only 2 left</span><span>90% Sold</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 90%;"></div></div>
+      </div>
+      <p>Designed with a flattering silhouette and intricate detailing.</p>
+      <button onclick="addToCart('DSF plain black crop top','M',40,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+  <!-- Product 3 -->
+  <div class="product">
+    <div class="sale-tag">SALE -15%</div>
+    <div class="best-seller-badge">BEST SELLER</div>
+    <img src="shein 44.jpeg" alt="DSF Ash nano joggers" onclick="openPopup('DSF Ash nano joggers', 'shein 44.jpeg', 'shein 44-back.jpeg', 70)">
+    <div class="product-details">
+      <b>DSF Ash nano joggers<br><span class="old-price">$85</span>$70</b>
+      <div class="rating">⭐⭐⭐⭐⭐ <span class="review-count">(210 reviews)</span></div>
+      <div class="stock-container">
+        <div class="stock-label"><span>Limited Edition! 8 left</span><span>60% Sold</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 60%;"></div></div>
+      </div>
+      <p>Comfort and style combined, perfect for indoors and outdoors.</p>
+      <button onclick="addToCart('DSF Ash nano joggers','M',70,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+  <!-- Product 4 -->
+  <div class="product">
+    <div class="sale-tag">SALE -15%</div>
+    <div class="best-seller-badge">BEST SELLER</div>
+    <img src="shein 3.jpeg" alt="DRF black nano joggers" onclick="openPopup('DRF black nano joggers', 'shein 3.jpeg', 'shein 3-back.jpeg', 70)">
+    <div class="product-details">
+      <b>DRF black nano joggers <br><span class="old-price">$85</span>$70</b>
+      <div class="rating">⭐⭐⭐⭐⭐ <span class="review-count">(156 reviews)</span></div>
+      <div class="stock-container">
+        <div class="stock-label"><span>Last few remaining! 4 left</span><span>85% Sold</span></div>
+        <div class="progress-bg"><div class="progress-fill" style="width: 85%;"></div></div>
+      </div>
+      <p>Modern fit joggers designed for the ultimate drip.</p>
+      <button onclick="addToCart('DRF black nano joggers','M',70,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+  <div id="overlay" onclick="closePopup()"></div>
+  <div id="product-popup">
+    <div class="popup-image-container">
+        <div><div class="popup-img-wrapper"><img id="popup-img-front" src=""></div><div class="view-label">Front</div></div>
+        <div><div class="popup-img-wrapper"><img id="popup-img-back" src=""></div><div class="view-label">Back</div></div>
+    </div>
+    <h3 id="popup-name" style="margin:0; color:#b8860b;">Product Name</h3>
+    <p id="popup-price" style="margin:5px 0 10px 0; font-weight:bold; font-size: 1.2em;"></p>
+    <div class="popup-field"><label>Size</label><select id="popup-size"><option>S</option><option selected>M</option><option>L</option></select></div>
+    <div class="popup-field"><label>Qty</label><input type="number" id="popup-qty" value="1" min="1"></div>
+    <div class="popup-actions">
+      <button class="btn-main" onclick="handlePopupAdd()">Add to Cart</button>
+      <button class="btn-outline" onclick="window.location.href='allcart.html'">See My Cart</button>
+      <button class="btn-outline" style="border-color:#555;" onclick="closePopup()">Continue Shopping</button>
+    </div>
+  </div>
+
+  <script>
+    let activeProduct = {};
+
+    function initPage() {
+      updateCartCount();
+      startTimer();
+      pickRandomBestSeller();
+    }
+
+    function pickRandomBestSeller() {
+      const badges = document.querySelectorAll('.best-seller-badge');
+      const now = new Date().getTime();
+      const expirationTime = 27 * 60 * 60 * 1000; // 27 hours in ms
+      
+      let storedData = JSON.parse(localStorage.getItem('bestSellerData'));
+
+      // If no data OR 27 hours have passed, pick a new random product
+      if (!storedData || (now - storedData.timestamp) > expirationTime) {
+        const randomIndex = Math.floor(Math.random() * badges.length);
+        storedData = {
+            index: randomIndex,
+            timestamp: now
+        };
+        localStorage.setItem('bestSellerData', JSON.stringify(storedData));
+      }
+
+      // Hide all, then show the stored one
+      badges.forEach(b => b.style.display = 'none');
+      badges[storedData.index].style.display = 'block';
+    }
+
+    function startTimer() {
+      let time = 18000;
+      setInterval(() => {
+        let h = Math.floor(time / 3600);
+        let m = Math.floor((time % 3600) / 60);
+        let s = time % 60;
+        document.getElementById('countdown').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        if (time > 0) time--;
+      }, 1000);
+    }
+
+    function triggerCartEffects() {
+      document.getElementById('cart-sound').play();
+      const bubble = document.getElementById('cart-bubble');
+      bubble.classList.remove('shake');
+      void bubble.offsetWidth;
+      bubble.classList.add('shake');
+    }
+
+    function updateCartCount() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const totalItems = cart.reduce((acc, item) => acc + parseInt(item.quantity), 0);
+      document.getElementById('cart-count').innerText = totalItems;
+    }
+
+    function openPopup(name, front, back, price) {
+      activeProduct = { name, price };
+      document.getElementById('popup-name').innerText = name;
+      document.getElementById('popup-price').innerText = `$${price}`;
+      document.getElementById('popup-img-front').src = front;
+      document.getElementById('popup-img-back').src = back;
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('product-popup').style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('product-popup').style.display = 'none';
+    }
+
+    function handlePopupAdd() {
+      const size = document.getElementById('popup-size').value;
+      const qty = parseInt(document.getElementById('popup-qty').value);
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.push({ product: activeProduct.name, size: size, price: activeProduct.price, quantity: qty });
+      localStorage.setItem("cart", JSON.stringify(cart));
+      triggerCartEffects();
+      updateCartCount();
+      closePopup();
+    }
+
+    function addToCart(product, size, price, quantity, button) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.push({ product, size, price, quantity });
+      localStorage.setItem("cart", JSON.stringify(cart));
+      triggerCartEffects();
+      updateCartCount();
+      const conf = button.nextElementSibling;
+      conf.innerHTML = `✅ Added!`; conf.style.opacity = "1";
+      setTimeout(() => { conf.style.opacity = "0"; }, 2000);
+    }
+  </script>
+</body>
+</html>
+
+
+collection simple style 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dripstar Fashion - Collection</title>
+  <style>
+    body { background-color: black; font-family: 'Segoe UI', sans-serif; color: white; margin: 0; overflow-x: hidden; }
+    
+    /* --- IMAGE HOVER ZOOM --- */
+    .product img, .popup-img-wrapper img {
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .product img:hover { transform: scale(1.08); z-index: 10; }
+    .popup-img-wrapper img:hover { transform: scale(1.5); cursor: zoom-in; }
+
+    /* --- UI ELEMENTS --- */
+    #shipping-bar-container { background: #1a1a1a; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 1100; border-bottom: 1px solid #333; }
+    #shipping-progress-fill { background: linear-gradient(90deg, #00ff00, #00ccff); height: 100%; width: 0%; transition: width 0.5s; }
+    h1 { background-color: aliceblue; color: black; padding: 5% 0 3%; text-align: center; margin: 0; }
+    .nav-btn { display: inline-block; margin-left: 6px; padding: 5px 12px; background: #333; color: #fff; text-decoration: none; border-radius: 18px; font-size: 0.85em; }
+    .nav-btn.active { background: #b8860b; font-weight: bold; }
+
+    /* --- PRODUCT DISPLAY --- */
+    .product { display: flex; align-items: flex-start; margin: 40px; padding-left: 10%; position: relative; }
+    .product img { width: 400px; height: 400px; border-radius: 10px; cursor: pointer; object-fit: cover; }
+    .product-details { max-width: 500px; padding-left: 20px; }
+    .product-details b { font-size: large; }
+    .product-details button { margin-top: 10px; padding: 8px 16px; background-color: rgb(178, 209, 236); border: none; cursor: pointer; font-size: medium; border-radius: 5px; }
+
+    /* --- WISHLIST BUTTON --- */
+    .wish-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 1.2em; z-index: 6; display: flex; align-items: center; justify-content: center; color: #333; transition: 0.3s; }
+    .wish-btn.active { color: red; }
+
+    /* --- POPUP --- */
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 999; }
+    #product-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 25px; z-index: 1000; border-radius: 30px; width: 450px; text-align: center; border: 1px solid #333; }
+    .popup-img-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; }
+    .popup-img-wrapper { overflow: hidden; border-radius: 15px; border: 2px solid #b8860b; width: 180px; height: 180px; }
+    .popup-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .popup-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .btn-main { background: linear-gradient(45deg, #ff00cc, #3333ff); color: white; padding: 12px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer; }
+    .btn-outline { background: #b8860b; color: white; padding: 10px; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; text-decoration: none; display: block; }
+    .btn-back { background: transparent; color: #888; padding: 10px; border: 1px solid #444; border-radius: 30px; cursor: pointer; }
+
+    .cart-bubble { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(45deg, #ff00cc, #3333ff); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1001; }
+    .cart-count { background: white; color: black; font-size: 13px; font-weight: bold; padding: 2px 8px; border-radius: 12px; position: absolute; top: -5px; right: -5px; border: 2px solid #ff00cc; }
+  </style>
+</head>
+<body onload="initPage()">
+
+  <div id="shipping-bar-container">
+    <span id="shipping-text">You're $200.00 away from FREE SHIPPING!</span>
+    <div style="background: #333; height: 6px; width: 60%; margin: 5px auto; border-radius: 10px; overflow: hidden;">
+        <div id="shipping-progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="cart-bubble" onclick="window.location.href='allcart.html'">
+    <span style="font-size: 28px;">🛒</span>
+    <span id="cart-count" class="cart-count">0</span>
+  </div>
+
+  <section style="text-align:center; font-size:xx-large; padding:20px 0; font-weight: bold;">Dripstar Fashion</section>
+  
+  <h1>
+    <div class="nav-buttons">
+      <a href="dripmain.html" class="nav-btn">Home</a>
+      <a href="dripcollection.html" class="nav-btn active">Collection</a>
+      <a href="dripAbout.html" class="nav-btn">About Us</a>
+      <a href="allcart.html" class="nav-btn">Cart</a>
+      <a href="driplogin.html" class="nav-btn">Account</a>
+    </div>
+  </h1>
+
+  <h2 style="padding-left:10%; margin-top:30px;">Drip Like A Star With Our Latest Collections</h2>
+
+  <!-- Product 1 -->
+  <div class="product">
+    <div style="position:relative;">
+      <button class="wish-btn" onclick="toggleWish('DSF blue y2k jean skirt', 'shein1', 55, this)">❤</button>
+      <img src="shein1" alt="DSF blue y2k jean skirt" onclick="openPopup('DSF blue y2k jean skirt', 'shein1', 'shein1-back', 55)">
+    </div>
+    <div class="product-details">
+      <b>DSF blue y2k jean skirt<br>$55</b>
+      <p>Embrace elegance with our DSF blue y2k jean skirt that flows beautifully with each step. Designed with a flattering silhouette and intricate detailing, ideal for both casual and formal occasions.</p>
+      <button onclick="addToCart('DSF blue y2k jean skirt','M',55,1,this)">Add to Cart</button>
+      <div class="confirmation" style="color: lime; font-weight: bold; opacity: 0;"></div>
+    </div>
+  </div>
+
+  <!-- Product 2 -->
+  <div class="product">
+    <div style="position:relative;">
+      <button class="wish-btn" onclick="toggleWish('DSF plain black crop top', 'shein2.jpeg', 40, this)">❤</button>
+      <img src="shein2.jpeg" alt="DSF Plain Black crop top" onclick="openPopup('DSF plain black crop top', 'shein2.jpeg', 'shein2-back.jpeg', 40)">
+    </div>
+    <div class="product-details">
+      <b>DSF plain black crop top<br>$40</b>
+      <p>Embrace elegance with our DSF Black makki jeans that flows beautifully with each step. Designed with a flattering silhouette and intricate detailing, ideal for both casual and formal occasions.</p>
+      <button onclick="addToCart('DSF plain black crop top','M',40,1,this)">Add to Cart</button>
+      <div class="confirmation" style="color: lime; font-weight: bold; opacity: 0;"></div>
+    </div>
+  </div>
+
+  <!-- Product 3 -->
+  <div class="product">
+    <div style="position:relative;">
+      <button class="wish-btn" onclick="toggleWish('DSF Ash nano joggers', 'shein 44.jpeg', 70, this)">❤</button>
+      <img src="shein 44.jpeg" alt="DSF Ash nano joggers" onclick="openPopup('DSF Ash nano joggers', 'shein 44.jpeg', 'shein 44-back.jpeg', 70)">
+    </div>
+    <div class="product-details">
+      <b>DSF Ash nano joggers<br>$70</b>
+      <p>This contemporary joggers combines comfort and style, perfect for indoors and outdoors activities.</p>
+      <button onclick="addToCart('DSF Ash nano joggers','M',70,1,this)">Add to Cart</button>
+      <div class="confirmation" style="color: lime; font-weight: bold; opacity: 0;"></div>
+    </div>
+  </div>
+
+  <!-- Product 4 -->
+  <div class="product">
+    <div style="position:relative;">
+      <button class="wish-btn" onclick="toggleWish('DRF black nano joggers', 'shein 3.jpeg', 70, this)">❤</button>
+      <img src="shein 3.jpeg" alt="DRF black nano joggers" onclick="openPopup('DRF black nano joggers', 'shein 3.jpeg', 'shein 3-back.jpeg', 70)">
+    </div>
+    <div class="product-details">
+      <b>DRF black nano joggers<br>$70</b>
+      <p>This contemporary joggers combines comfort and style, perfect for indoors and outdoors activities.</p>
+      <button onclick="addToCart('DRF black nano joggers','M',70,1,this)">Add to Cart</button>
+      <div class="confirmation" style="color: lime; font-weight: bold; opacity: 0;"></div>
+    </div>
+  </div>
+
+  <!-- POPUP STRUCTURE -->
+  <div id="overlay" onclick="closePopup()"></div>
+  <div id="product-popup">
+    <div class="popup-img-container">
+        <div class="popup-img-wrapper"><img id="popup-img-front" src=""></div>
+        <div class="popup-img-wrapper"><img id="popup-img-back" src=""></div>
+    </div>
+    <h3 id="popup-name" style="color:#b8860b; margin-top:10px;"></h3>
+    <p id="popup-price" style="font-weight:bold; font-size: 1.2em;"></p>
+    
+    <label>Size:</label>
+    <select id="pop-size" style="width:100%; padding:10px; border-radius:10px; background:#000; color:#fff; margin:10px 0;"><option>S</option><option selected>M</option><option>L</option></select>
+    
+    <label>Quantity:</label>
+    <input type="number" id="pop-qty" value="1" min="1" style="width:100%; padding:10px; border-radius:10px; background:#000; color:#fff; margin-bottom:15px;">
+
+    <div class="popup-actions">
+        <button class="btn-main" onclick="handlePopupAdd()">Add to Cart</button>
+        <a href="allcart.html" class="btn-outline" style="text-align:center;">See My Cart</a>
+        <button class="btn-back" onclick="closePopup()">Continue Shopping</button>
+    </div>
+  </div>
+
+  <script>
+    let activeProduct = {};
+
+    function initPage() { updateCartUI(); }
+
+    function openPopup(name, front, back, price) {
+      activeProduct = { name, price, front };
+      document.getElementById('popup-name').innerText = name;
+      document.getElementById('popup-price').innerText = `$${price}`;
+      document.getElementById('popup-img-front').src = front;
+      document.getElementById('popup-img-back').src = back;
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('product-popup').style.display = 'block';
+    }
+
+    function handlePopupAdd() {
+      const size = document.getElementById('pop-size').value;
+      const qty = document.getElementById('pop-qty').value;
+      addToCart(activeProduct.name, size, activeProduct.price, qty, null);
+      closePopup();
+    }
+
+    function addToCart(product, size, price, quantity, button) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.push({ product, size, price, quantity });
+      localStorage.setItem("cart", JSON.stringify(cart));
+      updateCartUI();
+      if(button) {
+          const conf = button.nextElementSibling;
+          conf.innerHTML = "✅ Added!";
+          conf.style.opacity = "1";
+          setTimeout(() => conf.style.opacity = "0", 2000);
+      }
+    }
+
+    function updateCartUI() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      document.getElementById('cart-count').innerText = cart.length;
+      const totalPrice = cart.reduce((acc, i) => acc + (parseFloat(i.price) * parseInt(i.quantity)), 0);
+      const fill = Math.min((totalPrice / 200) * 100, 100);
+      document.getElementById('shipping-progress-fill').style.width = fill + "%";
+      document.getElementById('shipping-text').innerText = totalPrice >= 200 ? 
+        "🎉 FREE SHIPPING UNLOCKED!" : `You're $${(200 - totalPrice).toFixed(2)} away from FREE SHIPPING!`;
+    }
+
+    function toggleWish(n, i, p, b) {
+      b.classList.toggle('active');
+      // Logic for saving to wishlist storage can go here
+    }
+
+    function closePopup() { document.getElementById('overlay').style.display='none'; document.getElementById('product-popup').style.display='none'; }
+  </script>
+</body>
+</html>
+
+
+all cart main script 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dripstar Fashion - Shopping Cart</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0e0b0b; color: #333; margin:0; padding:0; }
+    
+    .container { max-width: 800px; margin: auto; padding: 20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
+    th { background: #333; color: #fff; }
+    .total { text-align: right; margin-top: 20px; font-size: 1.5em; font-weight: bold; color: #ddd; }
+    .checkout-btn { display: block; margin: 20px auto; padding: 12px 24px; background: #e63946; color: #fff; border: none; border-radius: 4px; font-size: 1.2em; cursor: pointer; text-decoration: none; }
+    .checkout-btn:hover { background: #c53030; }
+    .pay-options { text-align: center; margin-top: 30px; }
+    .pay-btn { display: inline-block; margin: 10px; padding: 12px 24px; background: #0b6003; color: #fff; border: none; border-radius: 4px; font-size: 1.1em; cursor: pointer; }
+    .pay-btn:hover { background: #f0ecec; margin: 0%; text-decoration: none; }
+    .cancel-btn { display: block; margin: 20px auto; padding: 12px 24px; background: #ff4d4d; color: #fff; border: none; border-radius: 4px; font-size: 1.2em; cursor: pointer; }
+    .cancel-btn:hover { background: #cc0000; }
+   .back-btn {
+     
+      margin: 20px auto;
+      text-align: center;
+      background: #28a745;
+      margin-bottom: 9%;
+    }
+    .back-btn:hover {
+      background: #1e7e34;
+    }
+
+ ol{
+      color: #fcf8f8;
+      text-align: center;
+      font-size: larger;
+      font-size: xx-large;
+      font-weight: 700;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+
+    .main{
+      font-weight: 700;
+      padding-top: 1%;
+     font-size: xx-large;
+     font-family: Georgia, 'Times New Roman', Times, serif;
+     color: azure;
+     text-align: center;
+    }
+
+.mainnn{
+  color: aliceblue;
+  padding-bottom: 2%;
+}
+
+   h1 {
+      background-color: aliceblue;
+      color: black;
+      padding-bottom: 3%;
+      padding-top: 2%;
+      text-align: center;
+      word-spacing: 9px;
+    }
+    .nav-buttons {
+      
+      margin-top: -10px;
+      margin-right: 20px;
+      word-spacing: 6%;
+    }
+  .nav-btn {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 5px 12px;   
+    background: #333;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 18px; 
+    font-size: 0.85em;   
+    transition: all 0.3s ease;
+  }
+
+  .nav-btn:hover {
+    background: #555;
+    transform: translateY(-2px);
+  }
+
+  .nav-btn.active {
+    background: #b8860b; 
+    font-weight: bold;
+  }
+
+   .back-btn {
+      margin: 0% auto;
+      padding-top: 1%;
+      padding-bottom:1% ;
+      text-align: center;
+      background: #28a745;
+      border-radius: 5%;
+      font-weight: 400;
+      font-size: larger;
+    }
+    .back-btn:hover {
+      background: #e6ece8;
+    }
+
+  </style>
+</head>
+<body>
+
+<ol class="main">Dripstar Fashion</ol>
+   <h1>
+  <div id="Home" class="nav-buttons">
+    <a href="dripmain.html" class="nav-btn">Home</a>
+    <a href="dripcollection.html" class="nav-btn">Collection</a>
+    <a href="dripAbout.html" class="nav-btn">About Us</a>
+    <a href="allcart.html" class="nav-btn">Cart</a>
+     <a href="driplogin.html" class="nav-btn">Account</a>
+   </div>
+    </h1>
+
+  <div class="container">
+    <h1>Your Shopping Cart</h1>
+    <table id="cartTable">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Size</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Subtotal</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="total" id="cartTotal">Total: $0</div>
+    <button class="checkout-btn" onclick="renderCart()">Refresh Cart</button>
+    </div>
+
+  <div class="pay-options">
+      <button class="back-btn" onclick="window.location.href='drippayment.html'">Proceed To Payment</button>
+  </div>
+    </div>
+
+
+<script>
+  
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  
+  function renderCart() {
+    const tbody = document.querySelector("#cartTable tbody");
+    tbody.innerHTML = "";
+    let total = 0;
+
+    cart.forEach((item, index) => {
+      const subtotal = item.price * item.quantity;
+      total += subtotal;
+
+      const row = `
+        <tr>
+          <td>${item.product}</td>
+          <td>
+            <select onchange="updateSize(${index}, this.value)">
+              <option value="S" ${item.size === "S" ? "selected" : ""}>S</option>
+              <option value="M" ${item.size === "M" ? "selected" : ""}>M</option>
+              <option value="L" ${item.size === "L" ? "selected" : ""}>L</option>
+              <option value="XL" ${item.size === "XL" ? "selected" : ""}>XL</option>
+            </select>
+          </td>
+          <td>$${item.price}</td>
+          <td>
+            <input type="number" min="1" value="${item.quantity}" 
+                   onchange="updateQuantity(${index}, this.value, this)">
+          </td>
+          <td class="subtotal">$${subtotal}</td>
+          <td><button class="cancel-btn" onclick="removeItem(${index})">Cancel</button></td>
+        </tr>
+      `;
+      tbody.innerHTML += row;
+    });
+
+    document.getElementById("cartTotal").innerText = `Total: $${total}`;
+  }
+
+  
+  function updateSize(index, newSize) {
+    cart[index].size = newSize;
+    localStorage.setItem("cart", JSON.stringify(cart));
+    renderCart();
+  }
+
+  
+  function updateQuantity(index, newQuantity, inputEl) {
+    cart[index].quantity = parseInt(newQuantity);
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    const row = inputEl.closest("tr");
+    const subtotalCell = row.querySelector(".subtotal");
+    const newSubtotal = cart[index].price * cart[index].quantity;
+    subtotalCell.textContent = `$${newSubtotal}`;
+
+    let total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    document.getElementById("cartTotal").innerText = `Total: $${total}`;
+  }
+
+  function removeItem(index) {
+    cart.splice(index, 1);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    renderCart();
+  }
+
+
+  function sendOrder() {
+    fetch("sendOrder.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cart)
+    })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      localStorage.removeItem("cart");
+      window.location.href = "dripmain.html";
+    });
+  }
+
+  
+  function startPayment(method) {
+    alert(`✅ Payment successful via ${method}!`);
+
+    fetch("sendOrder.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart: cart, method: method })
+    })
+    .then(res => res.text())
+    .then(msg => {
+      alert(msg);
+      localStorage.removeItem("cart");
+      window.location.href = "dripmain.html";
+    });
+  }
+
+  
+  function cancelOrder() {
+    if(confirm("Are you sure you want to cancel your order?")) {
+      localStorage.removeItem("cart");
+      alert("❌ Order cancelled.");
+      window.location.href = "dripcollection.html"; 
+    }
+  }
+
+  
+  renderCart();
+</script>
+
+
+
+
+
+<nav>
+    Dripstar Fashion was born from a passion for innovative
+     design and a desire to empower self-expression through clothing. <br>
+     Our founder envisioned a brand that would blend contemporary <br>
+      fashion with timeless elegance.
+</nav>
+
+<br> <br> <br> <br>
+
+<section>
+    <br> <br>
+<img height="450" width="450" src="dripabt" alt="">
+<b>
+Since our inception, we have continuously evolved, <br>
+ embracing new trends and technologies while staying true to our core values.<br>
+  Our journey reflects a commitment to quality and creativity <br>
+   that resonates with our customers. <br>
+   Over the years, Dripstar Fashion has built a vibrant community of <br>
+    fashion enthusiasts and designers. We pride ourselves on <br>
+     collaborating with local artists and supporting initiatives <br>
+      that uplift the fashion industry as a whole. <br> <br> 
+       At Dripstar Fashion, we believe that quality is paramount. <br>
+        Each piece is crafted with the finest materials and exceptional attention to detail, <br>
+         ensuring that our designs not only look great but also last. <br>
+          We strive for excellence in every stitch.
+  </b>
+  <br> <br> <br>
+  
+<li>@proudly founded By Ngborogwu prince</li>
+
+  <br> <br>

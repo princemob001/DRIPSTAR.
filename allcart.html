@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dripstar Fashion - My Bag</title>
+  <style>
+    body { background-color: black; font-family: 'Segoe UI', sans-serif; color: white; padding: 20px; }
+    
+    .cart-container { max-width: 800px; margin: 50px auto; background: #111; padding: 30px; border-radius: 30px; border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    h1 { color: aliceblue; border-bottom: 2px solid #b8860b; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 0; }
+    
+    .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid #222; }
+    .item-info h3 { margin: 0 0 10px 0; color: #b8860b; font-size: 1.2em; }
+    
+    /* --- EDITABLE CONTROLS --- */
+    .edit-controls { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; }
+    .edit-group { display: flex; flex-direction: column; gap: 5px; }
+    .edit-group label { font-size: 0.7em; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .cart-select, .cart-qty { 
+      background: #000; color: white; border: 1px solid #444; 
+      padding: 8px; border-radius: 10px; outline: none; cursor: pointer; transition: 0.3s;
+    }
+    .cart-select:focus, .cart-qty:focus { border-color: #ff00cc; }
+    .cart-qty { width: 60px; text-align: center; }
+
+    .btn-remove { color: #ff4444; background: none; border: none; cursor: pointer; text-decoration: underline; font-size: 0.85em; padding: 0; margin-top: 5px; transition: 0.3s; }
+    .btn-remove:hover { color: white; }
+
+    .item-price { font-weight: bold; font-size: 1.2em; width: 140px; text-align: right; color: #fff; }
+    
+    /* --- SUMMARY AREA --- */
+    .summary-box { margin-top: 30px; text-align: right; }
+    .total-row { font-size: 2em; font-weight: bold; margin: 15px 0; color: white; border-top: 1px solid #333; padding-top: 20px; }
+    
+    .btn-checkout { 
+      width: 100%; 
+      background: linear-gradient(45deg, #ff00cc, #3333ff); 
+      color: white; padding: 18px; border: none; border-radius: 40px; 
+      font-weight: bold; font-size: 1.2em; cursor: pointer; 
+      transition: transform 0.3s, filter 0.3s; 
+    }
+    .btn-checkout:hover { transform: scale(1.02); filter: brightness(1.1); }
+    
+    .btn-shop { display: block; text-align: center; color: #888; text-decoration: none; margin-top: 20px; font-size: 0.95em; transition: 0.3s; }
+    .btn-shop:hover { color: #b8860b; }
+    
+    .currency-picker { background: #222; color: #b8860b; border: 1px solid #b8860b; border-radius: 15px; padding: 6px 12px; font-size: 0.6em; cursor: pointer; }
+    
+    .promo-section { margin-top: 25px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px dashed #444; display: flex; gap: 10px; align-items: center; }
+    .promo-input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #333; background: #000; color: white; padding-left: 20px; }
+    .btn-apply { background: #b8860b; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    .btn-apply:hover { background: #daa520; }
+  </style>
+</head>
+<body onload="loadCart()">
+
+  <div class="cart-container">
+    <h1>
+     Your Drip Cart
+      <select id="cur" class="currency-picker" onchange="localStorage.setItem('prefCurrency', this.value); loadCart();">
+        <option value="USD">USD ($)</option>
+        <option value="NGN">NGN (₦)</option>
+      </select>
+    </h1>
+
+    <div id="items-list">
+    </div>
+
+    <div id="summary-area" style="display: none;">
+        <div class="promo-section">
+            <input type="text" id="coupon" class="promo-input" placeholder="Promo Code (DRIP10)">
+            <button class="btn-apply" onclick="applyDisc()">Apply</button>
+        </div>
+        <p id="disc-msg" style="font-size:0.85em; text-align:left; padding-left:15px; margin-top:10px;"></p>
+
+        <div class="summary-box">
+            <div style="font-size: 1.1em; color: #888;">Subtotal: <span id="sub-total-display"></span></div>
+            <div id="disc-line" style="display:none; color:#ff00cc; margin-top:5px;">Discount (10%): <span id="disc-amt-display"></span></div>
+            
+            <div class="total-row">Total: <span id="final-total"></span></div>
+            
+            <button class="btn-checkout" onclick="goToPayment()">Checkout Now</button>
+            <a href="dripcollection.html" class="btn-shop">← Back to Shop</a>
+        </div>
+    </div>
+
+    <div id="empty-bag" style="display:none; text-align:center; padding:60px 20px;">
+        <p style="font-size: 1.2em; color: #666;">Your bag is currently empty.</p>
+        <a href="dripcollection.html" class="btn-checkout" style="display:inline-block; margin-top:20px; text-decoration:none; width: auto; padding: 15px 40px;">Go To Collection</a>
+    </div>
+  </div>
+
+  <script>
+    const NGN_RATE = 1500;
+    let isDiscounted = false;
+
+    function formatCurrency(usdAmount) {
+      const currentCurrency = localStorage.getItem('prefCurrency') || 'USD';
+      if (currentCurrency === 'NGN') {
+        return '₦' + (usdAmount * NGN_RATE).toLocaleString(undefined, {minimumFractionDigits: 0});
+      }
+      return '$' + usdAmount.toFixed(2);
+    }
+
+    function loadCart() {
+      document.getElementById('cur').value = localStorage.getItem('prefCurrency') || 'USD';
+      
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const itemsCont = document.getElementById("items-list");
+      const summaryArea = document.getElementById("summary-area");
+      const emptyArea = document.getElementById("empty-bag");
+      
+      if(cart.length === 0) { 
+        itemsCont.innerHTML = "";
+        summaryArea.style.display = 'none';
+        emptyArea.style.display = 'block';
+        return; 
+      }
+      
+      emptyArea.style.display = 'none';
+      summaryArea.style.display = 'block';
+      itemsCont.innerHTML = ""; 
+      
+      let subtotal = 0;
+
+      cart.forEach((item, index) => {
+        const lineTotal = parseFloat(item.price) * parseInt(item.quantity);
+        subtotal += lineTotal;
+
+        itemsCont.innerHTML += `
+          <div class="cart-item">
+            <div class="item-info">
+              <h3>${item.product}</h3>
+              <div class="edit-controls">
+                <div class="edit-group">
+                  <label>Size</label>
+                  <select class="cart-select" onchange="updateCart(${index}, 'size', this.value)">
+                    <option value="S" ${item.size === 'S' ? 'selected' : ''}>S</option>
+                    <option value="M" ${item.size === 'M' ? 'selected' : ''}>M</option>
+                    <option value="L" ${item.size === 'L' ? 'selected' : ''}>L</option>
+                    <option value="XL" ${item.size === 'XL' ? 'selected' : ''}>XL</option>
+                  </select>
+                </div>
+                <div class="edit-group">
+                  <label>Qty</label>
+                  <input type="number" class="cart-qty" min="1" value="${item.quantity}" 
+                         onchange="updateCart(${index}, 'quantity', this.value)">
+                </div>
+              </div>
+              <button class="btn-remove" onclick="removeItem(${index})">Remove Drip</button>
+            </div>
+            <div class="item-price">${formatCurrency(lineTotal)}</div>
+          </div>`;
+      });
+
+      document.getElementById("sub-total-display").innerText = formatCurrency(subtotal);
+      
+      let finalVal = subtotal;
+      if(isDiscounted) {
+        const discountVal = subtotal * 0.10;
+        finalVal = subtotal - discountVal;
+        document.getElementById("disc-line").style.display = "block";
+        document.getElementById("disc-amt-display").innerText = "-" + formatCurrency(discountVal);
+      } else {
+        document.getElementById("disc-line").style.display = "none";
+      }
+
+      document.getElementById("final-total").innerText = formatCurrency(finalVal);
+    }
+
+    function updateCart(index, key, val) {
+      let cart = JSON.parse(localStorage.getItem("cart"));
+      if(key === 'quantity') {
+        val = parseInt(val);
+        if(isNaN(val) || val < 1) val = 1;
+      }
+      cart[index][key] = val;
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadCart();
+    }
+
+    function removeItem(index) {
+      let cart = JSON.parse(localStorage.getItem("cart"));
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadCart();
+    }
+
+    function applyDisc() {
+      const code = document.getElementById("coupon").value.trim().toUpperCase();
+      const msg = document.getElementById("disc-msg");
+      if(code === "DRIP10") {
+        isDiscounted = true;
+        msg.innerText = "DRIP10 Applied! 10% reduction active. 🔥";
+        msg.style.color = "#00ff00";
+        loadCart();
+      } else {
+        alert("Code invalid. Try DRIP10");
+      }
+    }
+
+    function goToPayment() {
+      window.location.href = 'drippayment.html';
+    }
+  </script>
+</body>
+</html>

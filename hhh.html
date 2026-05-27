@@ -1,0 +1,49 @@
+. Would you like me to add that?
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.container {
+  position: relative;
+  display: inline-block;
+  width: 100%; /* makes it scale with screen */
+}
+
+.image {
+  width: 100%;
+  height: auto;
+}
+
+.text-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 5vw;   /* scales with viewport width */
+  font-weight: bold;
+  text-align: center;
+  background-color: rgba(0,0,0,0.5);
+  padding: 2vw;
+  border-radius: 5px;
+}
+
+/* Adjust for smaller screens */
+@media (max-width: 600px) {
+  .text-overlay {
+    font-size: 7vw;   /* slightly larger for readability */
+    padding: 3vw;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <img src="your-image.jpg" alt="Sample" class="image">
+  <div class="text-overlay">Elevate Your Style</div>
+</div>
+
+</body>
+</html>

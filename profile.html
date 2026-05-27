@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dripstar Profile</title>
+  <style>
+    body { background:#0d0d0d; font-family:Arial, Helvetica, sans-serif; color:#fff; margin:0; padding:0; }
+
+    #loader {
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      background:#0d0d0d; display:flex; justify-content:center; align-items:center;
+      z-index:9999;
+    }
+    .runner {
+      width:50px; height:50px; border:5px solid #00ff80; border-radius:50%;
+      animation: run 1s infinite linear;
+    }
+    @keyframes run {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(50px); }
+      100% { transform: translateX(0); }
+    }
+
+    .profile-container { max-width:700px; margin:50px auto; background:rgba(255,255,255,0.1); padding:40px; border-radius:15px; box-shadow:0 0 20px rgba(0,255,255,0.3); text-align:center; display:none; }
+    h1 { color:#00ff80; margin-bottom:20px; }
+    .welcome { font-size:1.4em; margin-bottom:20px; color:#0fff; }
+    .details { background:rgba(255,255,255,0.05); padding:20px; border-radius:10px; margin-bottom:30px; text-align:left; }
+    .details p { margin:10px 0; font-size:1.1em; }
+    .profile-pic { width:200px; height:200px; border-radius:50%; object-fit:cover; border:4px solid #00ff80; margin-bottom:15px; }
+    .btn { display:inline-block; margin:10px; padding:12px 25px; border-radius:25px; background:linear-gradient(90deg,#0fff,#00ff80); color:#000; font-weight:bold; text-decoration:none; transition:0.3s; }
+    .btn:hover { box-shadow:0 0 12px #00ff80; }
+    input[type="file"], input[type="text"], input[type="password"], textarea { margin:10px 0; padding:8px; width:90%; border-radius:8px; border:none; }
+  </style>
+</head>
+<body>
+  <script>
+    if (localStorage.getItem("isLoggedIn") !== "true") {
+      alert("You must log in first!");
+      window.location.href = "driplogin.html";
+    }
+  </script>
+
+  <div id="loader"><div class="runner"></div></div>
+
+  <div class="profile-container" id="profileContainer">
+    <h1>Dripstar Profile</h1>
+    <div class="welcome" id="welcomeMessage">Welcome!</div>
+
+    <img id="profilePic" class="profile-pic" src="" alt="Profile Picture"><br>
+    <input type="file" id="uploadPic" accept="image/*" onchange="saveProfilePic()">
+
+    <div class="details" id="profileDetails"></div>
+
+    <h3>Edit Profile</h3>
+    <input type="text" id="editUsername" placeholder="Update Username">
+    <textarea id="editBio" placeholder="Write your bio..."></textarea>
+    <button class="btn" onclick="saveProfile()">Save Profile</button>
+
+    <a href="dripcollection.html" class="btn">Go to Shop</a>
+    <a href="drippayment.html" class="btn">Payment Page</a>
+    <button class="btn" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("profileContainer").style.display = "block";
+      }, 1500);
+
+      const username = localStorage.getItem("userName");
+      const email = localStorage.getItem("userEmail");
+      const bio = localStorage.getItem("userBio");
+
+      if (username) {
+        document.getElementById("welcomeMessage").textContent = "Welcome back, " + username + "!";
+        document.getElementById("profileDetails").innerHTML =
+          "<p><strong>Username:</strong> " + username + "</p>" +
+          "<p><strong>Email:</strong> " + (email || "Not set") + "</p>" +
+          "<p><strong>Bio:</strong> " + (bio || "No bio yet") + "</p>";
+      } else if (email) {
+        document.getElementById("welcomeMessage").textContent = "Welcome back, " + email + "!";
+        document.getElementById("profileDetails").innerHTML =
+          "<p><strong>Email:</strong> " + email + "</p>";
+      }
+
+      const savedPic = localStorage.getItem("profilePic");
+      document.getElementById("profilePic").src = savedPic || "https://via.placeholder.com/200?text=Profile";
+    };
+
+    function saveProfilePic() {
+      const file = document.getElementById("uploadPic").files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          localStorage.setItem("profilePic", e.target.result);
+          document.getElementById("profilePic").src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveProfile() {
+      const newUsername = document.getElementById("editUsername").value.trim();
+      const newBio = document.getElementById("editBio").value.trim();
+
+      if (newUsername) localStorage.setItem("userName", newUsername);
+      if (newBio) localStorage.setItem("userBio", newBio);
+
+      alert("Profile updated!");
+      location.reload();
+    }
+
+    function changePassword() {
+      const newPassword = document.getElementById("newPassword").value.trim();
+      if (newPassword) {
+        localStorage.setItem("userPassword", newPassword);
+        alert("Password updated successfully!");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("stayLoggedIn");
+      window.location.href = "driplogin.html";
+    }
+  </script>
+</body>
+</html>

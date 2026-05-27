@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dripstar Register</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .form {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .inputbox {
+      margin: 20px 0;
+    }
+    .inputbox input {
+      width: 100%;
+      padding: 12px 15px;
+      background: none;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 18px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .submitbtn {
+      border-radius: 25px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: bold;
+      border: none;
+      background: linear-gradient(90deg, #0fff, #00ff80);
+      padding: 12px 30px;
+      color: #000;
+      width: 100%;
+    }
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .error { color: red; }
+    .success { color: lime; }
+    label {
+      color: #fff;
+      font-size: 14px;
+    }
+    b { color: aliceblue; }
+  </style>
+</head>
+<body>
+  <div class="form">
+    <h2>Dripstar REGISTER</h2>
+    <div class="inputbox">
+      <input type="text" id="username" placeholder="Username">
+    </div>
+    <div class="inputbox">
+      <input type="email" id="email" placeholder="Email">
+    </div>
+    <div class="inputbox">
+      <input type="password" id="password" placeholder="Password">
+    </div>
+    <div class="inputbox">
+      <input type="password" id="confirmPassword" placeholder="Confirm Password">
+    </div>
+
+    <label>
+      <input type="checkbox" id="showPassword" onclick="togglePassword()"> Show Password
+    </label>
+    <br><br>
+
+    <button class="submitbtn" onclick="register()">REGISTER</button>
+    <br><br>
+    <button class="submitbtn" onclick="window.location.href='driplogin.html'">Go to Login</button>
+    <div id="message" class="message"></div>
+  </div>
+
+  <script>
+    function register() {
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (!username || !email || !password || !confirmPassword) {
+        showMessage("Please fill in all fields", "error");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showMessage("Passwords do not match", "error");
+        return;
+      }
+
+      localStorage.setItem("userName", username);
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userPassword", password);
+
+      localStorage.setItem("registrationSuccess", "true");
+
+      showMessage("Registration successful! Redirecting to login...", "success");
+
+      setTimeout(() => {
+        window.location.href = "driplogin.html";
+      }, 1500);
+    }
+
+    function togglePassword() {
+      const passwordField = document.getElementById("password");
+      const confirmField = document.getElementById("confirmPassword");
+      const type = document.getElementById("showPassword").checked ? "text" : "password";
+      passwordField.type = type;
+      confirmField.type = type;
+    }
+
+    function showMessage(msg, type) {
+      const messageDiv = document.getElementById("message");
+      messageDiv.textContent = msg;
+      messageDiv.className = "message " + type;
+    }
+  </script>
+</body>
+</html>
+

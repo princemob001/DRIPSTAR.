@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Wishlist | Dripstar Fashion</title>
+  <style>
+    body { background-color: black; font-family: 'Segoe UI', sans-serif; color: white; margin: 0; padding: 20px; overflow-x: hidden; }
+    
+    .header { text-align: center; border-bottom: 2px solid #b8860b; padding-bottom: 20px; margin-bottom: 40px; }
+    .nav-btn { display: inline-block; margin: 0 10px; padding: 8px 20px; background: #333; color: #fff; text-decoration: none; border-radius: 20px; font-size: 0.9em; transition: 0.3s; }
+    .nav-btn:hover { background: #b8860b; transform: translateY(-2px); }
+
+    .wish-container { max-width: 1100px; margin: 0 auto; }
+    h1 { font-family: Georgia, serif; letter-spacing: 2px; text-transform: uppercase; }
+
+    .currency-picker { background: #222; color: #b8860b; border: 1px solid #b8860b; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+
+    .wish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
+    
+    .wish-card { 
+      background: #111; border-radius: 25px; padding: 20px; border: 1px solid #222; 
+      text-align: center; transition: 0.4s; position: relative; 
+    }
+    .wish-card:hover { transform: translateY(-10px); border-color: #ff00cc; box-shadow: 0 10px 30px rgba(255, 0, 204, 0.1); }
+    
+    .wish-card img { width: 100%; height: 280px; object-fit: cover; border-radius: 20px; margin-bottom: 15px; transition: 0.3s; }
+    .wish-card img:hover { transform: scale(1.03); }
+
+    .remove-btn { 
+      position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); 
+      color: #ff4444; border: 1px solid #ff4444; border-radius: 50%; width: 35px; height: 35px; 
+      cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; 
+    }
+    .remove-btn:hover { background: #ff4444; color: white; }
+
+    .price-tag { color: #ff00cc; font-size: 1.3em; font-weight: bold; margin: 10px 0; }
+
+    .btn-move { 
+      width: 100%; padding: 12px; background: linear-gradient(45deg, #ff00cc, #3333ff); 
+      color: white; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; 
+      transition: 0.3s; margin-top: 10px;
+    }
+    .btn-move:hover { filter: brightness(1.2); }
+
+    .empty-state { text-align: center; padding: 100px 20px; }
+    .empty-state h2 { color: #444; }
+    .shop-link { color: #b8860b; text-decoration: underline; font-weight: bold; }
+  </style>
+</head>
+<body onload="renderWishlist()">
+
+  <div class="header">
+    <h1>Dripstar Saved Drip</h1>
+    <a href="dripcollection.html" class="nav-btn">← Back to Shop</a>
+    <a href="allcart.html" class="nav-btn">View My Cart 🛒</a>
+  </div>
+
+  <div class="wish-container">
+    <div style="display: flex; justify-content: flex-end;">
+      <select class="currency-picker" id="currency-select" onchange="changeCurrency()">
+        <option value="USD">USD ($)</option>
+        <option value="NGN">NGN (₦)</option>
+      </select>
+    </div>
+
+    <div id="wish-grid-items" class="wish-grid">
+    
+    </div>
+
+    <div id="empty-msg" class="empty-state" style="display:none;">
+      <h2>Your wishlist is empty.</h2>
+      <p>Save the items you love to keep the drip on deck.</p>
+      <a href="dripcollection.html" class="shop-link">Browse Collection</a>
+    </div>
+  </div>
+
+  <script>
+    const RATE = 1500;
+
+    function renderWishlist() {
+      const cur = localStorage.getItem('prefCurrency') || 'USD';
+      document.getElementById('currency-select').value = cur;
+      
+      const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+      const cont = document.getElementById("wish-grid-items");
+      const empty = document.getElementById("empty-msg");
+
+      if(wishlist.length === 0) {
+        cont.innerHTML = "";
+        empty.style.display = "block";
+        return;
+      }
+
+      empty.style.display = "none";
+      cont.innerHTML = "";
+
+      wishlist.forEach((item, index) => {
+        const displayPrice = cur === 'NGN' ? '₦' + (item.price * RATE).toLocaleString() : '$' + item.price;
+        
+        cont.innerHTML += `
+          <div class="wish-card">
+            <button class="remove-btn" onclick="removeWish(${index})" title="Remove Item">✕</button>
+            <img src="${item.img}" alt="${item.name}">
+            <h3 style="margin:0; font-size: 1em;">${item.name}</h3>
+            <div class="price-tag">${displayPrice}</div>
+            <button class="btn-move" onclick="moveToCart(${index})">Move to cart</button>
+          </div>
+        `;
+      });
+    }
+
+    function removeWish(index) {
+      let wishlist = JSON.parse(localStorage.getItem("wishlist"));
+      wishlist.splice(index, 1);
+      localStorage.setItem("wishlist", JSON.stringify(wishlist));
+      renderWishlist();
+    }
+
+    function moveToCart(index) {
+      let wishlist = JSON.parse(localStorage.getItem("wishlist"));
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const item = wishlist[index];
+
+      cart.push({ product: item.name, size: "M", price: item.price, quantity: 1 });
+      localStorage.setItem("cart", JSON.stringify(cart));
+
+      wishlist.splice(index, 1);
+      localStorage.setItem("wishlist", JSON.stringify(wishlist));
+
+      alert(`${item.name} moved to bag! ✅`);
+      renderWishlist();
+    }
+
+    function changeCurrency() {
+      localStorage.setItem('prefCurrency', document.getElementById('currency-select').value);
+      renderWishlist();
+    }
+  </script>
+</body>
+</html>
+

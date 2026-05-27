@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Secure Checkout | Dripstar Fashion</title>
+  <style>
+    :root {
+      --gold: #b8860b;
+      --drip-gradient: linear-gradient(45deg, #ff00cc, #3333ff);
+      --glass: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+      background-color: black;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      margin: 0; padding: 0;
+      display: flex; justify-content: center;
+      min-height: 100vh;
+    }
+
+    .checkout-wrapper {
+      width: 90%; max-width: 1100px;
+      display: grid; grid-template-columns: 1.6fr 1fr;
+      gap: 30px; margin: 50px 0;
+    }
+
+    .checkout-panel {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      padding: 40px; border-radius: 35px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    h2 { color: var(--gold); margin: 0 0 25px 0; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; font-size: 1.2em;}
+
+    .input-group { margin-bottom: 20px; }
+    label { display: block; font-size: 0.75em; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;}
+    
+    input {
+      width: 100%; padding: 15px; background: rgba(0,0,0,0.4);
+      border: 1px solid #333; border-radius: 15px; color: white;
+      outline: none; transition: 0.3s; box-sizing: border-box;
+    }
+    input:focus { border-color: #ff00cc; background: rgba(255,255,255,0.05); }
+
+    .payment-methods { display: flex; gap: 10px; margin-bottom: 30px; }
+    .method-card {
+      flex: 1; padding: 15px 10px; text-align: center;
+      background: rgba(255,255,255,0.02); border-radius: 15px;
+      cursor: pointer; border: 1px solid #222; transition: 0.4s;
+      font-weight: bold; font-size: 0.85em; color: #666;
+    }
+    .method-card.active {
+      background: var(--drip-gradient); color: white; border: none;
+      box-shadow: 0 10px 20px rgba(255, 0, 204, 0.3); transform: translateY(-5px);
+    }
+
+    .method-content {
+      background: rgba(0,0,0,0.3); padding: 25px;
+      border-radius: 20px; border: 1px solid #222;
+      display: none; animation: fadeIn 0.5s ease;
+    }
+    .method-content.active { display: block; }
+
+    .details-box {
+      border: 1px dashed var(--gold); padding: 20px;
+      border-radius: 15px; margin-bottom: 20px;
+      line-height: 1.6; position: relative;
+    }
+
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: var(--gold); border: none; color: black;
+      padding: 5px 10px; border-radius: 8px; font-size: 0.7em;
+      font-weight: bold; cursor: pointer;
+    }
+
+    .whatsapp-btn {
+      display: block; width: 100%; padding: 15px;
+      background: #25D366; color: white; text-align: center;
+      text-decoration: none; border-radius: 30px; font-weight: bold; margin-top: 15px;
+    }
+
+    .order-summary {
+      background: rgba(255,255,255,0.02); padding: 35px;
+      border-radius: 35px; height: fit-content;
+      position: sticky; top: 40px; border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9em; }
+    .total-big { font-size: 2.2em; font-weight: 800; margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; text-align: right; color: white;}
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body onload="renderOrder()">
+
+  <div class="checkout-wrapper">
+    
+    <div class="checkout-panel">
+      <h2>1. Delivery Details</h2>
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" placeholder="Drip star User">
+      </div>
+      <div class="input-group">
+        <label>Shipping Address</label>
+        <input type="text" placeholder="123 Drip Lane, Lagos">
+      </div>
+
+      <h2 style="margin-top:50px;">2. Payment Method</h2>
+      <div class="payment-methods">
+        <div class="method-card" onclick="switchMethod('transfer')">Transfer</div>
+        <div class="method-card" onclick="switchMethod('crypto')">Crypto</div>
+      </div>
+
+
+      <div id="method-transfer" class="method-content">
+        <div class="details-box">
+          <button class="copy-btn" onclick="copyText('2275733052')">COPY</button>
+          <strong>Our Bank Details</strong><br> 
+          United Bank Of Africa<br>
+          Account Name: Ngborogwu prince Nnaemeka<br>
+          Account Number: <strong>2275733052</strong><br><br>
+          <em>Kindly reach out with proof of Payment.</em>
+        </div>
+        <a href="https://wa.me/2349064575303" class="whatsapp-btn">
+          SEND PROOF ON WHATSAPP
+        </a>
+      </div>
+
+      <div id="method-crypto" class="method-content">
+          <p style="font-size: 0.8em; color: #aaa; margin-bottom: 15px;">Select your preferred currency to get the wallet address:</p>
+          <select id="crypto-type" onchange="updateCryptoAddress()" style="width: 100%; padding: 12px; background: #000; color: #fff; border-radius: 10px; border: 1px solid #333;">
+              <option value="btc">Bitcoin (BTC)</option>
+          </select>
+          <div class="details-box" style="margin-top: 15px;">
+            <button class="copy-btn" id="crypto-copy" onclick="copyText(document.getElementById('wallet-addr').innerText)">COPY</button>
+            <label id="crypto-label">bc1qj4r4tq9sx6z3qfqswfkjg64lkr0qczdwmtajzx</label>
+            <div id="wallet-addr" style="word-break: break-all; font-family: monospace; font-size: 0.9em; color: var(--gold);">bc1qj4r4tq9sx6z3qfqswfkjg64lkr0qczdwmtajzx</div>
+          </div>
+          <a href="https://wa.me/2349064575303" class="whatsapp-btn">CONFIRM CRYPTO TRANSFER</a>
+      </div>
+
+    </div>
+
+    <div class="order-summary">
+      <h3 style="margin-top:0;">Drip Summary</h3>
+      <div id="summary-items-list"></div>
+      
+      <div class="summary-item" style="margin-top:30px;">
+        <span style="color:#666;">Subtotal</span>
+        <span id="sub-total"></span>
+      </div>
+      <div class="summary-item" style="color:#00ff00;">
+        <span>Drip Delivery</span>
+        <span>EXPRESS FREE</span>
+      </div>
+      
+      <div class="total-big" id="final-total"></div>
+      <a href="dripcollection.html" style="color:var(--gold); text-decoration:none; font-size:0.8em; display:block; text-align:right; margin-top:15px; font-weight: bold;">← BACK TO SHOP</a>
+    </div>
+
+  </div>
+
+  <script>
+    const RATE = 1500;
+    const cur = localStorage.getItem('prefCurrency') || 'USD';
+
+    function format(usd) {
+      return cur === 'NGN' ? '₦' + (usd * RATE).toLocaleString() : '$' + usd.toFixed(2);
+    }
+
+    function renderOrder() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const cont = document.getElementById('summary-items-list');
+      let total = 0;
+
+      if(cart.length === 0) { window.location.href = 'dripcollection.html'; return; }
+
+      cont.innerHTML = "";
+      cart.forEach(item => {
+        const lineTotal = parseFloat(item.price) * parseInt(item.quantity);
+        total += lineTotal;
+        cont.innerHTML += `
+          <div class="summary-item">
+            <span style="color:#888;">${item.quantity}x ${item.product}</span>
+            <span>${format(lineTotal)}</span>
+          </div>
+        `;
+      });
+      document.getElementById('sub-total').innerText = format(total);
+      document.getElementById('final-total').innerText = format(total);
+    }
+
+    function switchMethod(method) {
+      
+      document.querySelectorAll('.method-card').forEach(c => {
+          c.classList.remove('active');
+          if(c.innerText.toLowerCase() === method) c.classList.add('active');
+      });
+     
+      document.querySelectorAll('.method-content').forEach(content => content.classList.remove('active'));
+      document.getElementById('method-' + method).classList.add('active');
+    }
+
+    function copyText(val) {
+      navigator.clipboard.writeText(val);
+      alert("Copied: " + val);
+    }
+
+    function updateCryptoAddress() {
+        const type = document.getElementById('crypto-type').value;
+        const addr = document.getElementById('wallet-addr');
+        const label = document.getElementById('crypto-label');
+        
+        if(type === 'usdt') {
+            label.innerText = "USDT Address (TRC20):";
+            addr.innerText = "TLWv4g9GfVj8K... (Put Your TRC20 Here)";
+        } else if(type === 'btc') {
+            label.innerText = "Bitcoin Address:";
+            addr.innerText = "1A1zP1eP5QGefi2DPTfTL... (Put Your BTC Here)";
+        } else {
+            label.innerText = "Ethereum Address (ERC20):";
+            addr.innerText = "0x742d35Cc6634C... (Put Your ETH Here)";
+        }
+    }
+  </script>
+</body>
+</html>
