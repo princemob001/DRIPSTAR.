@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dripstar Fashion - Collection</title>
+  <style>
+    :root {
+      --gold: #b8860b;
+      --drip-gradient: linear-gradient(45deg, #ff00cc, #3333ff);
+    }
+
+    body { background-color: black; font-family: 'Segoe UI', sans-serif; color: white; margin: 0; overflow-x: hidden; scroll-behavior: smooth; }
+    
+    #shipping-bar-container { background: #1a1a1a; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 1100; border-bottom: 1px solid #333; }
+    #shipping-progress-fill { background: linear-gradient(90deg, #00ff00, #00ccff); height: 100%; width: 0%; transition: width 0.5s; }
+    h1 { background-color: aliceblue; color: black; padding: 3% 0 2%; text-align: center; margin: 0; }
+    
+    .nav-buttons { margin-top: -10px; word-spacing: 6%; }
+    .nav-btn { display: inline-block; margin: 5px; padding: 5px 15px; background: #333; color: #fff; text-decoration: none; border-radius: 18px; font-size: 0.85em; transition: 0.3s; }
+    .nav-btn:hover { background: #555; transform: translateY(-2px); }
+    .nav-btn.active { background: var(--gold); font-weight: bold; }
+    
+    .currency-picker { background: #222; color: var(--gold); border: 1px solid var(--gold); padding: 5px 10px; border-radius: 15px; cursor: pointer; font-weight: bold; }
+
+    .product { display: flex; align-items: flex-start; margin: 40px; padding-left: 5%; position: relative; }
+    .product img { width: 400px; height: 400px; border-radius: 10px; cursor: pointer; object-fit: cover; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .product img:hover { transform: scale(1.08); z-index: 10; }
+    .product-details { max-width: 500px; padding-left: 25px; }
+
+    .live-viewers {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75em;
+      color: #00ff00;
+      margin-bottom: 8px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #00ff00;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff00;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .btn-organic {
+      margin-top: 15px;
+      padding: 12px 30px;
+      background: var(--drip-gradient);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 0.9em;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 0, 204, 0.2);
+    }
+    .btn-organic:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 0, 204, 0.5); filter: brightness(1.1); }
+
+    .old-price { text-decoration: line-through; color: #888; font-size: 0.9em; margin-right: 8px; }
+    .sale-price { color: #ff00cc; font-size: 1.2em; font-weight: bold; }
+    .sale-tag { position: absolute; top: 10px; left: 10px; background: #ff0000; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8em; z-index: 5; }
+
+    .wish-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 1.2em; z-index: 6; color: #333; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+    .wish-btn.active { color: red; }
+
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 1200; }
+    #product-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 25px; z-index: 1300; border-radius: 30px; width: 450px; text-align: center; border: 1px solid #333; }
+    .popup-img-wrapper { overflow: hidden; border-radius: 15px; border: 2px solid var(--gold); width: 180px; height: 180px; display: inline-block; margin: 5px; }
+    .popup-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .popup-img-wrapper img:hover { transform: scale(1.5); cursor: zoom-in; }
+    
+    .popup-input { width: 100%; padding: 10px; border-radius: 10px; background: #000; color: #fff; border: 1px solid #444; margin-bottom: 10px; }
+    
+    #recently-viewed-section { display: none; background: #111; padding: 40px 10%; border-top: 1px solid #333; margin-top: 50px; }
+    .rv-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
+    .rv-item { flex: 0 0 150px; text-align: center; cursor: pointer; }
+    .rv-item img { width: 150px; height: 150px; object-fit: cover; border-radius: 10px; border: 1px solid #444; }
+    .btn-clear-rv { background: none; border: 1px solid #ff4444; color: #ff4444; border-radius: 15px; padding: 5px 12px; cursor: pointer; font-size: 0.7em; }
+
+    #backToTop { position: fixed; bottom: 110px; right: 30px; width: 50px; height: 50px; background: #333; color: white; border: 1px solid #ff00cc; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 1001; }
+    
+    .confirmation { color: lime; opacity: 0; font-weight: bold; margin-top: 10px; font-size: 0.9em; transition: opacity 0.4s; }
+ 
+   .gender{
+    margin-top: 15px;
+      padding: 12px 30px;
+      margin-left: 25%;
+      background: var(--drip-gradient);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 0.9em;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 0, 204, 0.2); }
+.gender:hover{
+  transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 0, 204, 0.5); filter: brightness(1.1);
+}
+
+ </style>
+</head>
+<body onload="initPage()">
+
+  <div id="shipping-bar-container">
+    <span id="shipping-text">You're $200.00 away from FREE SHIPPING!</span>
+    <div style="background: #333; height: 6px; width: 60%; margin: 5px auto; border-radius: 10px; overflow: hidden;"><div id="shipping-progress-fill"></div></div>
+  </div>
+
+  <button id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+
+  <div style="position: fixed; bottom: 30px; right: 30px; background: var(--drip-gradient); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1001; box-shadow: 0 0 20px rgba(255, 0, 204, 0.4);" onclick="window.location.href='allcart.html'">
+    <span>🛒</span><span id="cart-count" style="background: white; color: black; font-size: 13px; font-weight: bold; padding: 2px 8px; border-radius: 12px; position: absolute; top: -5px; right: -5px; border: 2px solid #ff00cc;">0</span>
+  </div>
+
+  <section style="text-align:center; font-size:xx-large; padding:20px 0; font-weight: bold;">Dripstar Fashion</section>
+  
+  <h1>
+    <div class="nav-buttons">
+      <a href="dripmain.html" class="nav-btn">Home</a>
+      <a href="dripcollection.html" class="nav-btn active">Collection</a>
+      <a href="dripAbout.html" class="nav-btn">About Us</a>
+      <a href="allcart.html" class="nav-btn">Cart</a>
+      <a href="wishlist.html" class="nav-btn">Wishlist <span id="wish-count-nav">(0)</span></a>
+      <select class="currency-picker" id="currency-select" onchange="changeCurrency()">
+        <option value="USD">USD ($)</option>
+        <option value="NGN">NGN (₦)</option>
+      </select>
+    </div>
+  </h1>
+
+  <h2 style="padding-left:10%; margin-top:30px;">Drip Like A Star With Our Latest Collections</h2>
+
+  <section id="gender1">
+    <button class="gender"> male <a href="dripcollection.html"></a></button>
+    <button class="gender"> Female <a href="femalesection.html"></a></button>
+  </section>
+
+
+
+  <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF blue y2k jean skirt', 'shein1', 40)">❤</button>
+        <img src="W3 FRONT.jpeg" alt="Jean Skirt" onclick="openPopup('DSF blue y2k jean skirt', 'W3 FRONT', 'W3 BACK', 40, 70)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">14</span> people are viewing this right now</div>
+      <b>DSF blue y2k jean skirt</b><br>
+      <span class="old-price" data-usd="60">$60</span><span class="sale-price" data-usd="40">$40</span>
+      <p>Embrace elegance with our DSF blue y2k jean skirt that flows beautifully with each step. Designed with a flattering silhouette and intricate detailing.</p>
+      <button class="btn-organic" onclick="addToCart('DSF blue y2k jean skirt','M',40,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+
+
+  </div>  <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF blue y2k jean skirt', 'shein1', 40)">❤</button>
+        <img src="shein1" alt="Jean Skirt" onclick="openPopup('DSF blue y2k jean skirt', 'shein1', 'shein1-back', 40, 70)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">14</span> people are viewing this right now</div>
+      <b>DSF blue y2k jean skirt</b><br>
+      <span class="old-price" data-usd="60">$60</span><span class="sale-price" data-usd="40">$40</span>
+      <p>Embrace elegance with our DSF blue y2k jean skirt that flows beautifully with each step. Designed with a flattering silhouette and intricate detailing.</p>
+      <button class="btn-organic" onclick="addToCart('DSF blue y2k jean skirt','M',40,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+
+  <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF blue y2k jean skirt', 'shein1', 40)">❤</button>
+        <img src="shein1" alt="Jean Skirt" onclick="openPopup('DSF blue y2k jean skirt', 'shein1', 'shein1-back', 40, 70)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">14</span> people are viewing this right now</div>
+      <b>DSF blue y2k jean skirt</b><br>
+      <span class="old-price" data-usd="60">$60</span><span class="sale-price" data-usd="40">$40</span>
+      <p>Embrace elegance with our DSF blue y2k jean skirt that flows beautifully with each step. Designed with a flattering silhouette and intricate detailing.</p>
+      <button class="btn-organic" onclick="addToCart('DSF blue y2k jean skirt','M',40,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+  <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF plain black crop top', 'shein2.jpeg', 40)">❤</button>
+        <img src="shein2.jpeg" alt="Black Top" onclick="openPopup('DSF plain black crop top', 'shein2.jpeg', 'shein2-back.jpeg', 25, 40)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">28</span> people are viewing this right now</div>
+      <b>DSF plain black crop top</b><br>
+      <span class="old-price" data-usd="40">$40</span><span class="sale-price" data-usd="25">$25</span>
+      <p>Embrace elegance with our DSF plain black crop topthat flows beautifully with each step.</p>
+      <button class="btn-organic" onclick="addToCart('DSF plain black crop top','M',25,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+  </div>
+
+     <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF white rider crop-top', 'shein 3.jpeg', 25)">❤</button>
+        <img src="sheinridercroptop.jpeg" alt="DSF white rider crop-top" onclick="openPopup('DRF white rider crop-top', 'sheinridercroptop.jpeg', 'shein 3-back.jpeg', 35, 45)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">41</span> people are viewing this right now</div>
+      <b>DSF white rider crop-top</b><br>
+      <span class="old-price" data-usd="40">$40</span><span class="sale-price" data-usd="25">$25</span>
+      <p>DSF rider crop-top designed for the ultimate drip.</p>
+      <button class="btn-organic" onclick="addToCart('DSF white rider crop-top','M',25,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+</div>
+
+ <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF black nano crop-top', 'sheinafront.jpeg', 25)">❤</button>
+        <img src="sheinafront.jpeg" alt="Black Joggers" onclick="openPopup('DSF black nano crop-top', 'sheinafront.jpeg', 'sheinAback.jpeg', 25, 40)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">41</span> people are viewing this right now</div>
+      <b>DSF black nano crop-top</b><br>
+      <span class="old-price" data-usd="40">$40</span><span class="sale-price" data-usd="25">$25</span>
+      <p> fit crop-top designed for the ultimate Baddies.</p>
+      <button class="btn-organic" onclick="addToCart('DSF black nano crop-top','M',25,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+</div>
+
+
+ <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF brown ', 'shein 3.jpeg', 70)">❤</button>
+        <img src="sheinbfront.jpeg" alt="Black Joggers" onclick="openPopup('DSF black nano joggers', 'sheinbfront.jpeg', '', 70, 85)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">41</span> people are viewing this right now</div>
+      <b>DSF black nano joggers</b><br>
+      <span class="old-price" data-usd="85">$85</span><span class="sale-price" data-usd="70">$70</span>
+      <p>Modern fit joggers designed for the ultimate drip. Combines breathable fabric with a sleek street silhouette.</p>
+      <button class="btn-organic" onclick="addToCart('DSF black nano joggers','M',70,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+</div>
+
+
+ <div class="product">
+    <div style="position:relative;">
+        <button class="wish-btn" onclick="toggleWish(this, 'DSF black Crop Hoodie', 'shein 3.jpeg', 30)">❤</button>
+        <img src="sheinffront.jpeg" alt="Black Joggers" onclick="openPopup('DSF black Crop Hoodie', 'sheinffront.jpeg', 'sheinFback.jpeg', 30, 55)">
+    </div>
+    <div class="product-details">
+      <div class="live-viewers"><div class="live-dot"></div><span class="view-count">41</span> people are viewing this right now</div>
+      <b>DSF black Crop Hoodie</b><br>
+      <span class="old-price" data-usd="55">$55</span><span class="sale-price" data-usd="30">$30</span>
+      <p>Strictly for the Baddies.</p>
+      <button class="btn-organic" onclick="addToCart('DSF black Crop Hoodie','M',30,1,this)">Add to Cart</button>
+      <div class="confirmation"></div>
+    </div>
+</div>
+
+
+
+
+  </div>
+
+  <div id="recently-viewed-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="color:var(--gold); margin:0;">Recently Viewed</h3>
+        <button class="btn-clear-rv" onclick="clearRecentlyViewed()">Clear History</button>
+    </div>
+    <div class="rv-container" id="rv-container"></div>
+  </div>
+
+
+
+  <div id="overlay" onclick="closePopup()"></div>
+  <div id="product-popup">
+    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:15px;">
+        <div class="popup-img-wrapper"><img id="pop-front" src=""></div>
+        <div class="popup-img-wrapper"><img id="pop-back" src=""></div>
+    </div>
+    <h3 id="pop-name" style="color:var(--gold);"></h3>
+    <p id="pop-price" style="font-weight:bold; font-size: 1.2em;"></p>
+    
+    <label style="display:block; text-align:left; font-size:0.8em; color:#888;">Size selection</label>
+    <select id="pop-size" class="popup-input"><option>S</option><option selected>M</option><option>L</option></select>
+    <label style="display:block; text-align:left; font-size:0.8em; color:#888;">Quantity selection</label>
+    <input type="number" id="pop-qty" class="popup-input" value="1" min="1">
+    
+    <button class="btn-organic" style="width:100%;" onclick="handlePopupAdd()">Add to Cart</button>
+    <button style="width:100%; background:var(--gold); color:white; border:none; border-radius:30px; padding:12px; margin-top:10px; cursor:pointer; font-weight:bold;" onclick="window.location.href='allcart.html'">See My Cart</button>
+    <button style="width:100%; background:transparent; color:#888; border:1px solid #444; border-radius:30px; padding:10px; margin-top:10px; cursor:pointer;" onclick="closePopup()">Continue Shopping</button>
+  </div>
+
+  <script>
+    const RATE = 1500;
+    let activeProduct = {};
+
+    function initPage() {
+      const cur = localStorage.getItem('prefCurrency') || 'USD';
+      document.getElementById('currency-select').value = cur;
+      updatePrices(); updateCartUI(); renderRV();
+      startLiveViewers();
+      window.onscroll = () => document.getElementById("backToTop").style.display = (window.scrollY > 300) ? "flex" : "none";
+    }
+
+    function startLiveViewers() {
+      setInterval(() => {
+        document.querySelectorAll('.view-count').forEach(el => {
+          let count = parseInt(el.innerText);
+          let change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+          el.innerText = Math.max(5, count + change);
+        });
+      }, 3000);
+    }
+
+    function changeCurrency() {
+      localStorage.setItem('prefCurrency', document.getElementById('currency-select').value);
+      updatePrices(); updateCartUI();
+    }
+
+    function updatePrices() {
+      const cur = localStorage.getItem('prefCurrency') || 'USD';
+      document.querySelectorAll('.sale-price, .old-price').forEach(el => {
+        const usd = parseFloat(el.getAttribute('data-usd'));
+        el.innerText = cur === 'NGN' ? '₦' + (usd * RATE).toLocaleString() : '$' + usd;
+      });
+    }
+
+    function formatPrice(usd) {
+      const cur = localStorage.getItem('prefCurrency') || 'USD';
+      return cur === 'NGN' ? '₦' + (usd * RATE).toLocaleString() : '$' + usd;
+    }
+
+    function openPopup(name, f, b, p) {
+      activeProduct = { name, price: p, front: f };
+      document.getElementById('pop-name').innerText = name;
+      document.getElementById('pop-price').innerText = formatPrice(p);
+      document.getElementById('pop-front').src = f;
+      document.getElementById('pop-back').src = b;
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('product-popup').style.display = 'block';
+      
+      let rv = JSON.parse(localStorage.getItem('rv')) || [];
+      rv = rv.filter(i => i.name !== name);
+      rv.unshift({ name, img: f, back: b, price: p });
+      localStorage.setItem('rv', JSON.stringify(rv.slice(0, 6)));
+      renderRV();
+    }
+
+    function renderRV() {
+      const rv = JSON.parse(localStorage.getItem('rv')) || [];
+      const sec = document.getElementById('recently-viewed-section');
+      if (rv.length === 0) { sec.style.display = 'none'; return; }
+      sec.style.display = 'block';
+      document.getElementById('rv-container').innerHTML = rv.map(i => `<div class="rv-item" onclick="openPopup('${i.name}','${i.img}','${i.back}',${i.price})"><img src="${i.img}"><p style="font-size:0.8em; color:#888;">${i.name}</p></div>`).join('');
+    }
+
+    function clearRecentlyViewed() { localStorage.removeItem('rv'); renderRV(); }
+
+    function handlePopupAdd() {
+      const q = document.getElementById('pop-qty').value;
+      addToCart(activeProduct.name, document.getElementById('pop-size').value, activeProduct.price, q, null);
+      alert(`Added to cart, thanks for shopping with dripstar fashion!`);
+      closePopup();
+    }
+
+    function addToCart(p, s, pr, q, btn) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.push({ product: p, size: s, price: pr, quantity: q });
+      localStorage.setItem("cart", JSON.stringify(cart));
+      updateCartUI();
+      if(btn && btn.nextElementSibling) {
+          const conf = btn.nextElementSibling;
+          conf.innerText = "Added to cart, thanks for shopping with dripstar fashion";
+          conf.style.opacity = "1";
+          setTimeout(() => { conf.style.opacity = "0"; }, 4000);
+      }
+    }
+
+    function toggleWish(btn, name, img, price) {
+      let wish = JSON.parse(localStorage.getItem('wishlist')) || [];
+      const idx = wish.findIndex(i => i.name === name);
+      if(idx === -1) { 
+        wish.push({name, img, price}); btn.classList.add('active'); btn.innerText = "❤️";
+      } else { 
+        wish.splice(idx, 1); btn.classList.remove('active'); btn.innerText = "❤";
+      }
+      localStorage.setItem('wishlist', JSON.stringify(wish));
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const wish = JSON.parse(localStorage.getItem("wishlist")) || [];
+      document.getElementById('cart-count').innerText = cart.length;
+      document.getElementById('wish-count-nav').innerText = `(${wish.length})`;
+      const totalUSD = cart.reduce((acc, i) => acc + (parseFloat(i.price) * parseInt(i.quantity)), 0);
+      document.getElementById('shipping-progress-fill').style.width = Math.min((totalUSD/200)*100, 100) + "%";
+      document.getElementById('shipping-text').innerText = totalUSD >= 200 ? "🎉 FREE SHIPPING UNLOCKED!" : `You're ${formatPrice(200-totalUSD)} away from FREE SHIPPING!`;
+    }
+
+    function closePopup() { document.getElementById('overlay').style.display='none'; document.getElementById('product-popup').style.display='none'; }
+  </script>
+</body>
+</html>

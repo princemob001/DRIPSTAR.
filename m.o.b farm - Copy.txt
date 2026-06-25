@@ -1,0 +1,8 @@
+male:    4
+female:  4
+pre(male):    1
+pre(female):  3 
+
+total: male - 5 
+total: female - 7 
+                   = 12
